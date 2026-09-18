@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Windows Setup
 on:
   push:
     branches: [ main ]
@@ -11,11 +11,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install dependencies
+          cache: 'pip'
+      - name: Install Python dependencies
         run: pip install -r requirements.txt
-      - name: Build EXE
-        run: pyinstaller --noconfirm --clean --windowed --name MessengerDesk --collect-all PySide6.QtWebEngineCore --collect-all PySide6.QtWebEngineWidgets main.py
+      - name: Build optimized app folder
+        run: pyinstaller --noconfirm --clean --windowed --onedir --name MessengerDesk --collect-all PySide6.QtWebEngineCore --collect-all PySide6.QtWebEngineWidgets main.py
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress -y
+      - name: Build Setup
+        shell: powershell
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
       - uses: actions/upload-artifact@v4
         with:
-          name: MessengerDesk-Windows
-          path: dist/MessengerDesk/
+          name: MessengerDesk-Setup
+          path: installer/MessengerDesk-Setup.exe
